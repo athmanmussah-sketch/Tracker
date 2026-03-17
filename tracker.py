@@ -1,6 +1,5 @@
 #!/usr/bin/python
-# << ORIGINAL CODE BY HUNX04 (https://github.com/hunx04)
-# << MODIFIED TO DARKX TOOL
+# DARKX TOOL - ADVANCED TRACKER
 # “Wahai orang-orang yang beriman! Janganlah kamu saling memakan harta sesamamu dengan jalan yang batil,” (QS. An Nisaa': 29). 
 # Rasulullah SAW juga melarang umatnya untuk mengambil hak orang lain tanpa izin.
 
@@ -9,9 +8,13 @@ import requests
 import time
 import os
 import phonenumbers
+import re
+import socket
 from phonenumbers import carrier, geocoder, timezone
 from sys import stderr
+from urllib.parse import urlparse
 
+# Colors
 Bl = '\033[30m'
 Re = '\033[1;31m'
 Gr = '\033[1;32m'
@@ -28,144 +31,189 @@ def is_option(func):
         func(*args, **kwargs)
     return wrapper
 
-# FUNCTIONS FOR MENU
+# ---------- TRACKING FUNCTIONS ----------
+
 @is_option
 def IP_Track():
     ip = input(f"{Wh}\n Enter IP target : {Gr}")
     print()
-    print(f' {Wh}============= {Gr}SHOW INFORMATION IP ADDRESS {Wh}=============')
-    req_api = requests.get(f"http://ipwho.is/{ip}")
-    ip_data = json.loads(req_api.text)
-    time.sleep(2)
-    print(f"{Wh}\n IP target       :{Gr}", ip)
-    print(f"{Wh} Type IP         :{Gr}", ip_data["type"])
-    print(f"{Wh} Country         :{Gr}", ip_data["country"])
-    print(f"{Wh} Country Code    :{Gr}", ip_data["country_code"])
-    print(f"{Wh} City            :{Gr}", ip_data["city"])
-    print(f"{Wh} Continent       :{Gr}", ip_data["continent"])
-    print(f"{Wh} Continent Code  :{Gr}", ip_data["continent_code"])
-    print(f"{Wh} Region          :{Gr}", ip_data["region"])
-    print(f"{Wh} Region Code     :{Gr}", ip_data["region_code"])
-    print(f"{Wh} Latitude        :{Gr}", ip_data["latitude"])
-    print(f"{Wh} Longitude       :{Gr}", ip_data["longitude"])
-    lat = int(ip_data['latitude'])
-    lon = int(ip_data['longitude'])
-    print(f"{Wh} Maps            :{Gr}", f"https://www.google.com/maps/@{lat},{lon},8z")
-    print(f"{Wh} EU              :{Gr}", ip_data["is_eu"])
-    print(f"{Wh} Postal          :{Gr}", ip_data["postal"])
-    print(f"{Wh} Calling Code    :{Gr}", ip_data["calling_code"])
-    print(f"{Wh} Capital         :{Gr}", ip_data["capital"])
-    print(f"{Wh} Borders         :{Gr}", ip_data["borders"])
-    print(f"{Wh} Country Flag    :{Gr}", ip_data["flag"]["emoji"])
-    print(f"{Wh} ASN             :{Gr}", ip_data["connection"]["asn"])
-    print(f"{Wh} ORG             :{Gr}", ip_data["connection"]["org"])
-    print(f"{Wh} ISP             :{Gr}", ip_data["connection"]["isp"])
-    print(f"{Wh} Domain          :{Gr}", ip_data["connection"]["domain"])
-    print(f"{Wh} ID              :{Gr}", ip_data["timezone"]["id"])
-    print(f"{Wh} ABBR            :{Gr}", ip_data["timezone"]["abbr"])
-    print(f"{Wh} DST             :{Gr}", ip_data["timezone"]["is_dst"])
-    print(f"{Wh} Offset          :{Gr}", ip_data["timezone"]["offset"])
-    print(f"{Wh} UTC             :{Gr}", ip_data["timezone"]["utc"])
-    print(f"{Wh} Current Time    :{Gr}", ip_data["timezone"]["current_time"])
-
-@is_option
-def phoneGW():
-    User_phone = input(f"\n {Wh}Enter phone number target {Gr}Ex [+6281xxxxxxxxx] {Wh}: {Gr}")
-    default_region = "ID"
-    parsed_number = phonenumbers.parse(User_phone, default_region)
-    region_code = phonenumbers.region_code_for_number(parsed_number)
-    jenis_provider = carrier.name_for_number(parsed_number, "en")
-    location = geocoder.description_for_number(parsed_number, "id")
-    is_valid_number = phonenumbers.is_valid_number(parsed_number)
-    is_possible_number = phonenumbers.is_possible_number(parsed_number)
-    formatted_number = phonenumbers.format_number(parsed_number, phonenumbers.PhoneNumberFormat.INTERNATIONAL)
-    formatted_number_for_mobile = phonenumbers.format_number_for_mobile_dialing(parsed_number, default_region, with_formatting=True)
-    number_type = phonenumbers.number_type(parsed_number)
-    timezone1 = timezone.time_zones_for_number(parsed_number)
-    timezoneF = ', '.join(timezone1)
-
-    print(f"\n {Wh}========== {Gr}SHOW INFORMATION PHONE NUMBERS {Wh}==========")
-    print(f"\n {Wh}Location             :{Gr} {location}")
-    print(f" {Wh}Region Code          :{Gr} {region_code}")
-    print(f" {Wh}Timezone             :{Gr} {timezoneF}")
-    print(f" {Wh}Operator             :{Gr} {jenis_provider}")
-    print(f" {Wh}Valid number         :{Gr} {is_valid_number}")
-    print(f" {Wh}Possible number      :{Gr} {is_possible_number}")
-    print(f" {Wh}International format :{Gr} {formatted_number}")
-    print(f" {Wh}Mobile format        :{Gr} {formatted_number_for_mobile}")
-    print(f" {Wh}Original number      :{Gr} {parsed_number.national_number}")
-    print(f" {Wh}E.164 format         :{Gr} {phonenumbers.format_number(parsed_number, phonenumbers.PhoneNumberFormat.E164)}")
-    print(f" {Wh}Country code         :{Gr} {parsed_number.country_code}")
-    print(f" {Wh}Local number         :{Gr} {parsed_number.national_number}")
-    if number_type == phonenumbers.PhoneNumberType.MOBILE:
-        print(f" {Wh}Type                 :{Gr} This is a mobile number")
-    elif number_type == phonenumbers.PhoneNumberType.FIXED_LINE:
-        print(f" {Wh}Type                 :{Gr} This is a fixed-line number")
-    else:
-        print(f" {Wh}Type                 :{Gr} This is another type of number")
-
-@is_option
-def TrackLu():
+    print(f' {Wh}============= {Gr}IP ADDRESS INFORMATION {Wh}=============')
     try:
-        username = input(f"\n {Wh}Enter Username : {Gr}")
-        results = {}
-        social_media = [
-            {"url": "https://www.facebook.com/{}", "name": "Facebook"},
-            {"url": "https://www.twitter.com/{}", "name": "Twitter"},
-            {"url": "https://www.instagram.com/{}", "name": "Instagram"},
-            {"url": "https://www.linkedin.com/in/{}", "name": "LinkedIn"},
-            {"url": "https://www.github.com/{}", "name": "GitHub"},
-            {"url": "https://www.pinterest.com/{}", "name": "Pinterest"},
-            {"url": "https://www.tumblr.com/{}", "name": "Tumblr"},
-            {"url": "https://www.youtube.com/{}", "name": "Youtube"},
-            {"url": "https://soundcloud.com/{}", "name": "SoundCloud"},
-            {"url": "https://www.snapchat.com/add/{}", "name": "Snapchat"},
-            {"url": "https://www.tiktok.com/@{}", "name": "TikTok"},
-            {"url": "https://www.behance.net/{}", "name": "Behance"},
-            {"url": "https://www.medium.com/@{}", "name": "Medium"},
-            {"url": "https://www.quora.com/profile/{}", "name": "Quora"},
-            {"url": "https://www.flickr.com/people/{}", "name": "Flickr"},
-            {"url": "https://www.periscope.tv/{}", "name": "Periscope"},
-            {"url": "https://www.twitch.tv/{}", "name": "Twitch"},
-            {"url": "https://www.dribbble.com/{}", "name": "Dribbble"},
-            {"url": "https://www.stumbleupon.com/stumbler/{}", "name": "StumbleUpon"},
-            {"url": "https://www.ello.co/{}", "name": "Ello"},
-            {"url": "https://www.producthunt.com/@{}", "name": "Product Hunt"},
-            {"url": "https://www.snapchat.com/add/{}", "name": "Snapchat"},
-            {"url": "https://www.telegram.me/{}", "name": "Telegram"},
-            {"url": "https://www.weheartit.com/{}", "name": "We Heart It"}
-        ]
-        for site in social_media:
-            url = site['url'].format(username)
-            response = requests.get(url)
-            if response.status_code == 200:
-                results[site['name']] = url
-            else:
-                results[site['name']] = (f"{Ye}Username not found {Ye}!")
+        req_api = requests.get(f"http://ipwho.is/{ip}")
+        ip_data = json.loads(req_api.text)
+        time.sleep(1)
+        print(f"{Wh}\n IP target       :{Gr}", ip)
+        print(f"{Wh} Type IP         :{Gr}", ip_data.get("type", "N/A"))
+        print(f"{Wh} Country         :{Gr}", ip_data.get("country", "N/A"))
+        print(f"{Wh} Country Code    :{Gr}", ip_data.get("country_code", "N/A"))
+        print(f"{Wh} City            :{Gr}", ip_data.get("city", "N/A"))
+        print(f"{Wh} Region          :{Gr}", ip_data.get("region", "N/A"))
+        print(f"{Wh} Latitude        :{Gr}", ip_data.get("latitude", "N/A"))
+        print(f"{Wh} Longitude       :{Gr}", ip_data.get("longitude", "N/A"))
+        lat = ip_data.get('latitude', 0)
+        lon = ip_data.get('longitude', 0)
+        print(f"{Wh} Maps            :{Gr}", f"https://www.google.com/maps/@{lat},{lon},8z")
+        print(f"{Wh} ISP             :{Gr}", ip_data.get("connection", {}).get("isp", "N/A"))
+        print(f"{Wh} Organization    :{Gr}", ip_data.get("connection", {}).get("org", "N/A"))
     except Exception as e:
-        print(f"{Re}Error : {e}")
-        return
-
-    print(f"\n {Wh}========== {Gr}SHOW INFORMATION USERNAME {Wh}==========")
-    print()
-    for site, url in results.items():
-        print(f" {Wh}[ {Gr}+ {Wh}] {site} : {Gr}{url}")
+        print(f"{Re} Error: {e}")
 
 @is_option
 def showIP():
-    respone = requests.get('https://api.ipify.org/')
-    Show_IP = respone.text
+    try:
+        respone = requests.get('https://api.ipify.org/')
+        Show_IP = respone.text
+        print(f"\n {Wh}========== {Gr}YOUR PUBLIC IP {Wh}==========")
+        print(f"\n {Wh}[{Gr} + {Wh}] IP Address : {Gr}{Show_IP}")
+    except Exception as e:
+        print(f"{Re} Error: {e}")
 
-    print(f"\n {Wh}========== {Gr}SHOW INFORMATION YOUR IP {Wh}==========")
-    print(f"\n {Wh}[{Gr} + {Wh}] Your IP Adrress : {Gr}{Show_IP}")
-    print(f"\n {Wh}==============================================")
+@is_option
+def phoneGW():
+    User_phone = input(f"\n {Wh}Enter phone number (with country code, e.g., +6281xxxx) : {Gr}")
+    try:
+        parsed_number = phonenumbers.parse(User_phone, None)
+        region_code = phonenumbers.region_code_for_number(parsed_number)
+        provider = carrier.name_for_number(parsed_number, "en")
+        location = geocoder.description_for_number(parsed_number, "id")
+        is_valid = phonenumbers.is_valid_number(parsed_number)
+        is_possible = phonenumbers.is_possible_number(parsed_number)
+        formatted_intl = phonenumbers.format_number(parsed_number, phonenumbers.PhoneNumberFormat.INTERNATIONAL)
+        timezones = timezone.time_zones_for_number(parsed_number)
+        tz_str = ', '.join(timezones) if timezones else "N/A"
 
-# OPTIONS
+        print(f"\n {Wh}========== {Gr}PHONE NUMBER INFORMATION {Wh}==========")
+        print(f"\n {Wh}Location         :{Gr} {location}")
+        print(f" {Wh}Region Code      :{Gr} {region_code}")
+        print(f" {Wh}Timezone         :{Gr} {tz_str}")
+        print(f" {Wh}Operator         :{Gr} {provider if provider else 'Unknown'}")
+        print(f" {Wh}Valid number     :{Gr} {is_valid}")
+        print(f" {Wh}Possible number  :{Gr} {is_possible}")
+        print(f" {Wh}International    :{Gr} {formatted_intl}")
+        print(f" {Wh}Country code     :{Gr} +{parsed_number.country_code}")
+        print(f" {Wh}Local number     :{Gr} {parsed_number.national_number}")
+    except Exception as e:
+        print(f"{Re} Error: {e}")
+
+@is_option
+def TrackLu():
+    username = input(f"\n {Wh}Enter Username : {Gr}")
+    results = {}
+    social_media = [
+        {"url": "https://www.facebook.com/{}", "name": "Facebook"},
+        {"url": "https://www.twitter.com/{}", "name": "Twitter"},
+        {"url": "https://www.instagram.com/{}", "name": "Instagram"},
+        {"url": "https://www.linkedin.com/in/{}", "name": "LinkedIn"},
+        {"url": "https://www.github.com/{}", "name": "GitHub"},
+        {"url": "https://www.pinterest.com/{}", "name": "Pinterest"},
+        {"url": "https://www.tiktok.com/@{}", "name": "TikTok"},
+        {"url": "https://www.youtube.com/{}", "name": "YouTube"},
+        {"url": "https://www.snapchat.com/add/{}", "name": "Snapchat"},
+        {"url": "https://t.me/{}", "name": "Telegram"},
+        {"url": "https://www.twitch.tv/{}", "name": "Twitch"},
+        {"url": "https://www.medium.com/@{}", "name": "Medium"},
+    ]
+    print(f"\n {Wh}========== {Gr}USERNAME SEARCH RESULTS {Wh}==========")
+    for site in social_media:
+        url = site['url'].format(username)
+        try:
+            response = requests.get(url, timeout=5)
+            if response.status_code == 200:
+                print(f" {Wh}[{Gr}+{Wh}] {site['name']}: {Gr}{url}")
+            else:
+                print(f" {Wh}[{Re}-{Wh}] {site['name']}: {Ye}Not found")
+        except:
+            print(f" {Wh}[{Re}-{Wh}] {site['name']}: {Ye}Error checking")
+
+@is_option
+def mac_lookup():
+    mac = input(f"\n {Wh}Enter MAC Address (e.g., 00:11:22:AA:BB:CC) : {Gr}")
+    try:
+        response = requests.get(f"https://api.macvendors.com/{mac}")
+        if response.status_code == 200:
+            vendor = response.text.strip()
+            print(f"\n {Wh}========== {Gr}MAC ADDRESS VENDOR {Wh}==========")
+            print(f" {Wh}MAC        : {Gr}{mac}")
+            print(f" {Wh}Vendor     : {Gr}{vendor}")
+        else:
+            print(f"{Re} Vendor not found or invalid MAC.")
+    except Exception as e:
+        print(f"{Re} Error: {e}")
+
+@is_option
+def website_info():
+    url = input(f"\n {Wh}Enter website URL (e.g., https://example.com) : {Gr}")
+    if not url.startswith('http'):
+        url = 'http://' + url
+    try:
+        response = requests.get(url, timeout=10, allow_redirects=True)
+        soup_text = response.text
+        title_match = re.search(r'<title>(.*?)</title>', soup_text, re.IGNORECASE)
+        title = title_match.group(1) if title_match else "No title found"
+        server = response.headers.get('Server', 'Unknown')
+        content_type = response.headers.get('Content-Type', 'Unknown')
+        ip = socket.gethostbyname(urlparse(url).netloc)
+
+        print(f"\n {Wh}========== {Gr}WEBSITE INFORMATION {Wh}==========")
+        print(f" {Wh}URL         : {Gr}{url}")
+        print(f" {Wh}IP Address  : {Gr}{ip}")
+        print(f" {Wh}Server      : {Gr}{server}")
+        print(f" {Wh}Content Type: {Gr}{content_type}")
+        print(f" {Wh}Page Title  : {Gr}{title}")
+        print(f" {Wh}Status Code : {Gr}{response.status_code}")
+    except Exception as e:
+        print(f"{Re} Error: {e}")
+
+@is_option
+def reverse_ip():
+    ip = input(f"\n {Wh}Enter IP address for reverse lookup : {Gr}")
+    try:
+        response = requests.get(f"http://api.hackertarget.com/reverseiplookup/?q={ip}")
+        if response.status_code == 200:
+            domains = response.text.strip().split('\n')
+            print(f"\n {Wh}========== {Gr}DOMAINS HOSTED ON IP {ip} {Wh}==========")
+            for d in domains:
+                if d and 'error' not in d.lower():
+                    print(f" {Wh}[{Gr}+{Wh}] {Gr}{d}")
+                else:
+                    print(f" {Ye}No domains found or API limit reached.")
+        else:
+            print(f"{Re} API error.")
+    except Exception as e:
+        print(f"{Re} Error: {e}")
+
+@is_option
+def bin_lookup():
+    bin_num = input(f"\n {Wh}Enter BIN (first 6 digits of credit card) : {Gr}")
+    if not bin_num.isdigit() or len(bin_num) < 6:
+        print(f"{Re} Please enter at least 6 digits.")
+        return
+    try:
+        response = requests.get(f"https://lookup.binlist.net/{bin_num[:6]}")
+        if response.status_code == 200:
+            data = response.json()
+            print(f"\n {Wh}========== {Gr}BIN INFORMATION {Wh}==========")
+            print(f" {Wh}BIN        : {Gr}{bin_num[:6]}")
+            print(f" {Wh}Scheme     : {Gr}{data.get('scheme', 'N/A')}")
+            print(f" {Wh}Type       : {Gr}{data.get('type', 'N/A')}")
+            print(f" {Wh}Brand      : {Gr}{data.get('brand', 'N/A')}")
+            print(f" {Wh}Country    : {Gr}{data.get('country', {}).get('name', 'N/A')}")
+            print(f" {Wh}Bank       : {Gr}{data.get('bank', {}).get('name', 'N/A')}")
+        else:
+            print(f"{Re} BIN not found or invalid.")
+    except Exception as e:
+        print(f"{Re} Error: {e}")
+
+# ---------- MENU ----------
 options = [
     {'num': 1, 'text': 'IP Tracker', 'func': IP_Track},
-    {'num': 2, 'text': 'Show Your IP', 'func': showIP},
+    {'num': 2, 'text': 'Show My IP', 'func': showIP},
     {'num': 3, 'text': 'Phone Number Tracker', 'func': phoneGW},
     {'num': 4, 'text': 'Username Tracker', 'func': TrackLu},
+    {'num': 5, 'text': 'MAC Address Lookup', 'func': mac_lookup},
+    {'num': 6, 'text': 'Website Info', 'func': website_info},
+    {'num': 7, 'text': 'Reverse IP Lookup', 'func': reverse_ip},
+    {'num': 8, 'text': 'BIN (Credit Card) Lookup', 'func': bin_lookup},
     {'num': 0, 'text': 'Exit', 'func': exit}
 ]
 
@@ -173,19 +221,17 @@ def clear():
     os.system('cls' if os.name == 'nt' else 'clear')
 
 def call_option(opt):
-    if not is_in_options(opt):
-        raise ValueError('Option not found')
     for option in options:
         if option['num'] == opt:
             if 'func' in option:
                 option['func']()
-            else:
-                print('No function detected')
+                return
+    raise ValueError('Option not found')
 
 def execute_option(opt):
     try:
         call_option(opt)
-        input(f'\n{Wh}[ {Gr}+ {Wh}] {Gr}Press enter to continue')
+        input(f'\n{Wh}[ {Gr}+ {Wh}] {Gr}Press Enter to continue...')
         main()
     except ValueError as e:
         print(e)
@@ -202,12 +248,6 @@ def option_text():
         text += f'{Wh}[ {opt["num"]} ] {Gr}{opt["text"]}\n'
     return text
 
-def is_in_options(num):
-    for opt in options:
-        if opt['num'] == num:
-            return True
-    return False
-
 def option():
     clear()
     stderr.writelines(f"""
@@ -218,10 +258,7 @@ def option():
 {Wh}║      {Gr}██║  ██║██╔══██║██╔══██╗██╔═██╗              {Wh}║
 {Wh}║      {Gr}██████╔╝██║  ██║██║  ██║██║  ██╗             {Wh}║
 {Wh}║      {Gr}╚═════╝ ╚═╝  ╚═╝╚═╝  ╚═╝╚═╝  ╚═╝             {Wh}║
-{Wh}║                    {Gr}TRACKER TOOL                    {Wh}║
-{Wh}║          {Cy}------------------------------          {Wh}║
-{Wh}║            {Wh}[ {Gr}CODE BY HUNX04 (original){Wh} ]           ║
-{Wh}║            {Wh}[ {Gr}MODIFIED TO DARKX{Wh} ]                  ║
+{Wh}║                 {Cy}ADVANCED TRACKER                  {Wh}║
 {Wh}╚════════════════════════════════════════════════════╝
     """)
     stderr.writelines(f"\n\n{option_text()}")
@@ -233,7 +270,8 @@ def run_banner():
 ╔════════════════════════════════════════════════════╗
 ║                 {Gr}DARKX TRACKER                    {Wh}║
 ║             {Cy}-----------------------              {Wh}║
-║         {Wh}[ {Gr}IP • PHONE • USERNAME {Wh}]               ║
+║         {Wh}[ {Gr}IP • PHONE • USERNAME • MAC {Wh}]        ║
+║         {Wh}[ {Gr}WEBSITE • REVERSE IP • BIN {Wh}]        ║
 ║                                                    ║
 ║        {Mage}Let the hunt begin...                    {Wh}║
 ╚════════════════════════════════════════════════════╝
@@ -248,7 +286,7 @@ def main():
         opt = int(input(f"{Wh}\n [ + ] {Gr}Select Option : {Wh}"))
         execute_option(opt)
     except ValueError:
-        print(f'\n{Wh}[ {Re}! {Wh}] {Re}Please input number')
+        print(f'\n{Wh}[ {Re}! {Wh}] {Re}Please input a number')
         time.sleep(2)
         main()
 
